@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "Spoticheck",
+    "slug": "spoticheck",
+    "version": "1.0.0",
+    "scheme": "spoticheck",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#090D0A",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.spoticheck.app"
+    },
+    "android": {
+      "package": "com.spoticheck.app",
+      "versionCode": 1,
+      "predictiveBackGestureEnabled": false,
+      "adaptiveIcon": {
+        "backgroundColor": "#090D0A",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#090D0A",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 180
+        }
+      ],
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "color": "#1DB954",
+          "defaultChannel": "payments"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

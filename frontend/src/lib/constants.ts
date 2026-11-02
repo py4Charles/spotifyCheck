@@ -1,0 +1,9 @@
+export const APP_NAME = 'Spoticheck';
+export const DEFAULT_CURRENCY = 'GHS';
+export const DEFAULT_PLAN_COST_CENTS = 1699;
+export const DEFAULT_GRACE_DAYS = 5;
+export const DEFAULT_REMINDER_DAYS_BEFORE = 3;
+export const DEFAULT_TIMEZONE = 'Africa/Accra';
+export const PAYMENT_CHANNEL_ID = 'payments';
+export const PAYMENT_METHODS = ['Cash', 'Mobile Money', 'Bank transfer', 'Other'] as const;
+export const CURRENCY_OPTIONS = ['GHS', 'NGN', 'KES', 'ZAR', 'USD', 'EUR', 'GBP'] as const;
