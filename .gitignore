@@ -7,3 +7,4 @@ backend/.env.*
 backend/supabase/.temp/
 backend/supabase/.branches/
 node_modules/
+session-ses_e63f.md
