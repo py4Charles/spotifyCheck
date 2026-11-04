@@ -14,7 +14,7 @@ export default function AppLayout() {
   const viewerQuery = useViewer();
   usePushTokenSync();
 
-  const onSetup = segments.includes('setup');
+  const onSetup = (segments as string[]).includes('setup');
 
   if (initializing) {
     return <LoadingScreen label="Loading your plan…" />;

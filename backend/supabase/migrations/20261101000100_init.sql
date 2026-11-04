@@ -699,6 +699,12 @@ revoke execute on function public.add_group_member(uuid, text, text) from public
 revoke execute on function public.create_billing_cycle(uuid, text, date, date, date, integer) from public;
 revoke execute on function public.record_payment(uuid, boolean, text, text, text) from public;
 
+revoke execute on function public.accept_invites() from anon;
+revoke execute on function public.create_group(text, text, integer, integer, integer, text) from anon;
+revoke execute on function public.add_group_member(uuid, text, text) from anon;
+revoke execute on function public.create_billing_cycle(uuid, text, date, date, date, integer) from anon;
+revoke execute on function public.record_payment(uuid, boolean, text, text, text) from anon;
+
 grant execute on function public.accept_invites() to authenticated;
 grant execute on function public.create_group(text, text, integer, integer, integer, text) to authenticated;
 grant execute on function public.add_group_member(uuid, text, text) to authenticated;
