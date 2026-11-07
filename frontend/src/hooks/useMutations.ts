@@ -1,11 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 
 import {
   addGroupMember,
   createBillingCycle,
   createGroup,
+  deleteCycle,
   recordPayment,
   removeMember,
   savePushToken,
@@ -23,7 +25,7 @@ export function useCreateGroup() {
   return useMutation({
     mutationFn: (input: GroupInput) => createGroup(input),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['viewer'] });
+      queryClient.invalidateQueries({ queryKey: ['plans'] });
     },
   });
 }
@@ -47,6 +49,18 @@ export function useCreateCycle(groupId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.cycles(groupId) });
       queryClient.invalidateQueries({ queryKey: ['group-dues', groupId] });
+    },
+  });
+}
+
+export function useDeleteCycle(groupId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (cycleId: string) => deleteCycle(cycleId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.cycles(groupId) });
+      queryClient.invalidateQueries({ queryKey: ['group-dues', groupId] });
+      queryClient.invalidateQueries({ queryKey: ['plans'] });
     },
   });
 }
@@ -80,7 +94,7 @@ export function useUpdateGroup(groupId: string) {
       >,
     ) => updateGroup(groupId, updates),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['viewer'] });
+      queryClient.invalidateQueries({ queryKey: ['plans'] });
     },
   });
 }
@@ -111,7 +125,7 @@ export function usePushTokenSync() {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || Platform.OS === 'web') return;
     let cancelled = false;
 
     async function sync() {

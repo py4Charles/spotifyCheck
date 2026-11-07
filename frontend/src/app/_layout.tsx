@@ -4,6 +4,7 @@ import { router, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider, useAuth } from '@/lib/auth';
@@ -29,7 +30,6 @@ export default function RootLayout() {
 
 function RootNavigator() {
   const { initializing } = useAuth();
-  useNotificationObserver();
 
   useEffect(() => {
     if (!initializing) {
@@ -38,17 +38,20 @@ function RootNavigator() {
   }, [initializing]);
 
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: colors.background },
-        animation: 'fade',
-      }}
-    />
+    <>
+      {Platform.OS !== 'web' ? <NotificationObserver /> : null}
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.background },
+          animation: 'fade',
+        }}
+      />
+    </>
   );
 }
 
-function useNotificationObserver() {
+function NotificationObserver() {
   const response = Notifications.useLastNotificationResponse();
 
   useEffect(() => {
@@ -59,4 +62,6 @@ function useNotificationObserver() {
       void Notifications.clearLastNotificationResponseAsync();
     }
   }, [response]);
+
+  return null;
 }

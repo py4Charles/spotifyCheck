@@ -13,6 +13,8 @@ import { PAYMENT_CHANNEL_ID } from './constants';
 import { EAS_PROJECT_ID } from './env';
 
 export function configureNotifications(): void {
+  if (Platform.OS === 'web') return;
+
   setNotificationHandler({
     handleNotification: async () => ({
       shouldShowBanner: true,

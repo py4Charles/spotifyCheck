@@ -1,4 +1,5 @@
 export const APP_NAME = 'Spoticheck';
+export const MAX_PLANS = 6;
 export const DEFAULT_CURRENCY = 'GHS';
 export const DEFAULT_PLAN_COST_CENTS = 1699;
 export const DEFAULT_GRACE_DAYS = 5;

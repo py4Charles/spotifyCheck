@@ -10,11 +10,13 @@ import {
   fetchMyDues,
 } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { usePlansContext } from '@/lib/plans';
 
 import type { BillingCycle, Due, DueWithCycle, GroupMember, Viewer } from '@/types';
 
 export const queryKeys = {
-  viewer: (userId: string) => ['viewer', userId] as const,
+  plans: (userId: string) => ['plans', userId] as const,
+  viewer: (userId: string) => ['plans', userId] as const,
   members: (groupId: string, includeRemoved = false) =>
     ['members', groupId, includeRemoved ? 'all' : 'active'] as const,
   cycles: (groupId: string) => ['cycles', groupId] as const,
@@ -24,13 +26,19 @@ export const queryKeys = {
   myDues: (memberId: string) => ['my-dues', memberId] as const,
 };
 
-export function useViewer() {
+export function usePlans() {
   const { user } = useAuth();
-  return useQuery<Viewer | null>({
-    queryKey: queryKeys.viewer(user?.id ?? 'anonymous'),
+  return useQuery<Viewer[]>({
+    queryKey: queryKeys.plans(user?.id ?? 'anonymous'),
     queryFn: () => fetchBootstrap(user!.id),
     enabled: Boolean(user),
   });
+}
+
+export function useViewer() {
+  const plansQuery = usePlans();
+  const { activeViewer } = usePlansContext();
+  return { ...plansQuery, data: activeViewer };
 }
 
 export function useMembers(groupId?: string | null, includeRemoved = false) {

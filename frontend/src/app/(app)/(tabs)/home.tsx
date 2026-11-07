@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
 import { Avatar } from '@/components/Avatar';
@@ -16,17 +16,22 @@ import { SectionHeader } from '@/components/SectionHeader';
 import { StatusPill } from '@/components/StatusPill';
 import { useMembers, useMyDues, useOwnerCycleSummaries, useViewer } from '@/hooks/useAppData';
 import { useRecordPayment } from '@/hooks/useMutations';
+import { MAX_PLANS } from '@/lib/constants';
 import { dueStatus, dueStatusLabel } from '@/lib/dates';
 import { errorMessage } from '@/lib/errors';
 import { formatDate, formatMoney } from '@/lib/format';
+import { usePlansContext } from '@/lib/plans';
 import { summarizeCycles } from '@/lib/summaries';
 import { colors, radii, spacing } from '@/lib/theme';
 
 export default function HomeScreen() {
   const viewerQuery = useViewer();
+  const { plans, setActivePlanId } = usePlansContext();
   const viewer = viewerQuery.data;
   const isOwner = viewer?.role === 'owner';
   const group = viewer?.group;
+
+  const atPlanLimit = plans.length >= MAX_PLANS;
 
   const membersQuery = useMembers(isOwner ? group?.id : null, true);
   const cyclesQuery = useOwnerCycleSummaries(isOwner ? group?.id : null);
@@ -105,6 +110,14 @@ export default function HomeScreen() {
     }
   }
 
+  function addPlan() {
+    if (atPlanLimit) {
+      Alert.alert('Plan limit reached', `You can manage up to ${MAX_PLANS} plans.`);
+      return;
+    }
+    router.push('/setup?add=1');
+  }
+
   const firstName = viewer.display_name.split(' ')[0] || 'there';
 
   return (
@@ -125,6 +138,59 @@ export default function HomeScreen() {
           <Ionicons name="settings-outline" size={21} color={colors.text} />
         </Pressable>
       </View>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.planSwitcher}
+      >
+        {plans.map((plan) => {
+          const active = plan.group.id === group.id;
+          return (
+            <Pressable
+              key={plan.group.id}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+              onPress={() => setActivePlanId(plan.group.id)}
+              style={({ pressed }) => [
+                styles.planChip,
+                active && styles.planChipActive,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Ionicons
+                name={active ? 'radio-button-on' : 'radio-button-off'}
+                size={16}
+                color={active ? colors.primary : colors.textMuted}
+              />
+              <AppText
+                variant="caption"
+                color={active ? colors.primary : colors.textMuted}
+                numberOfLines={1}
+              >
+                {plan.group.name}
+              </AppText>
+            </Pressable>
+          );
+        })}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Add plan"
+          disabled={atPlanLimit}
+          onPress={addPlan}
+          style={({ pressed }) => [
+            styles.planChip,
+            styles.addPlanChip,
+            atPlanLimit && styles.planChipDisabled,
+            pressed && !atPlanLimit && styles.pressed,
+          ]}
+        >
+          <Ionicons name="add" size={16} color={atPlanLimit ? colors.textFaint : colors.primary} />
+          <AppText variant="caption" color={atPlanLimit ? colors.textFaint : colors.primary}>
+            {atPlanLimit ? `Max ${MAX_PLANS}` : 'Add plan'}
+          </AppText>
+        </Pressable>
+      </ScrollView>
 
       <Card style={styles.planCard}>
         <View style={styles.planTop}>
@@ -421,6 +487,33 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.7,
+  },
+  planSwitcher: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    paddingVertical: 2,
+  },
+  planChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    borderRadius: radii.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    maxWidth: 190,
+  },
+  planChipActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primarySoft,
+  },
+  addPlanChip: {
+    borderStyle: 'dashed',
+  },
+  planChipDisabled: {
+    opacity: 0.5,
   },
   planCard: {
     gap: spacing.md,

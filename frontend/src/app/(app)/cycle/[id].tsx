@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
+import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { DetailRow } from '@/components/DetailRow';
 import { DueRow } from '@/components/DueRow';
@@ -15,7 +16,7 @@ import { ProgressBar } from '@/components/ProgressBar';
 import { Screen } from '@/components/Screen';
 import { StatusPill } from '@/components/StatusPill';
 import { useCycle, useCycleDues, useMembers, useViewer } from '@/hooks/useAppData';
-import { useRecordPayment } from '@/hooks/useMutations';
+import { useRecordPayment, useDeleteCycle } from '@/hooks/useMutations';
 import { dueStatus, dueStatusLabel } from '@/lib/dates';
 import { errorMessage } from '@/lib/errors';
 import { formatDate, formatMoney } from '@/lib/format';
@@ -33,7 +34,9 @@ export default function CycleDetailScreen() {
   const duesQuery = useCycleDues(id);
   const membersQuery = useMembers(isOwner ? group?.id : null, true);
   const paymentMutation = useRecordPayment(group?.id ?? '');
+  const deleteMutation = useDeleteCycle(group?.id ?? '');
   const [pendingDueId, setPendingDueId] = useState<string | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const membersById = useMemo(
     () => new Map((membersQuery.data ?? []).map((member) => [member.id, member])),
@@ -83,6 +86,15 @@ export default function CycleDetailScreen() {
       Alert.alert('Could not update payment', errorMessage(caught));
     } finally {
       setPendingDueId(null);
+    }
+  }
+
+  async function handleDelete() {
+    try {
+      await deleteMutation.mutateAsync(id);
+      router.replace('/history');
+    } catch (caught) {
+      Alert.alert('Could not delete cycle', errorMessage(caught));
     }
   }
 
@@ -192,6 +204,41 @@ export default function CycleDetailScreen() {
                   />
                 );
               })
+            )}
+          </Card>
+
+          <Card style={styles.dangerCard}>
+            <View style={styles.dangerCopy}>
+              <AppText variant="bodyStrong" color={colors.danger}>
+                Delete this cycle
+              </AppText>
+              <AppText variant="caption" color={colors.textMuted}>
+                This permanently removes the cycle and its payment records. This cannot be undone.
+              </AppText>
+            </View>
+            {confirmingDelete ? (
+              <View style={styles.confirmRow}>
+                <Button
+                  title="Cancel"
+                  variant="secondary"
+                  onPress={() => setConfirmingDelete(false)}
+                  style={styles.confirmButton}
+                />
+                <Button
+                  title="Delete"
+                  variant="danger"
+                  loading={deleteMutation.isPending}
+                  onPress={() => void handleDelete()}
+                  style={styles.confirmButton}
+                />
+              </View>
+            ) : (
+              <Button
+                title="Delete cycle"
+                icon="trash-outline"
+                variant="ghost"
+                onPress={() => setConfirmingDelete(true)}
+              />
             )}
           </Card>
         </>
@@ -328,5 +375,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceElevated,
     borderRadius: radii.md,
     padding: spacing.md,
+  },
+  dangerCard: {
+    gap: spacing.md,
+    borderColor: colors.danger,
+  },
+  dangerCopy: {
+    gap: spacing.xs,
+  },
+  confirmRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  confirmButton: {
+    flex: 1,
   },
 });

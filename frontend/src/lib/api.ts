@@ -29,27 +29,25 @@ export async function acceptInvites(): Promise<number> {
   return (data as number | null) ?? 0;
 }
 
-export async function fetchBootstrap(userId: string): Promise<Viewer | null> {
+export async function fetchBootstrap(userId: string): Promise<Viewer[]> {
   try {
     await acceptInvites();
   } catch {
     void 0;
   }
-  return fetchViewer(userId);
+  return fetchPlans(userId);
 }
 
-export async function fetchViewer(userId: string): Promise<Viewer | null> {
+export async function fetchPlans(userId: string): Promise<Viewer[]> {
   const { data, error } = await supabase
     .from('group_members')
     .select('*, group:groups(*)')
     .eq('user_id', userId)
     .eq('status', 'active')
-    .order('created_at', { ascending: true })
-    .limit(1)
-    .maybeSingle();
+    .order('created_at', { ascending: true });
 
   if (error) throw new Error(error.message);
-  return (data as Viewer | null) ?? null;
+  return (data as Viewer[] | null) ?? [];
 }
 
 export async function fetchMembers(
@@ -158,6 +156,11 @@ export async function createBillingCycle(input: CycleInput): Promise<BillingCycl
   });
 
   return unwrap(data as BillingCycle | null, error);
+}
+
+export async function deleteCycle(cycleId: string): Promise<void> {
+  const { error } = await supabase.from('billing_cycles').delete().eq('id', cycleId);
+  if (error) throw new Error(error.message);
 }
 
 export async function recordPayment(input: PaymentInput): Promise<Due> {
